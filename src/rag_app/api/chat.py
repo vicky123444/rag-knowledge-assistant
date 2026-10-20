@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
 from src.rag_app.schemas.chat import AskQuestionRequest, AskQuestionResponse
-from src.rag_app.services.rag_service import RAGService
+from src.rag_app.services.rag_service import get_rag_service
 
 router = APIRouter()
 
@@ -9,7 +9,7 @@ router = APIRouter()
 @router.post("/chat/ask", response_model=AskQuestionResponse, tags=["chat"])
 async def ask_question(payload: AskQuestionRequest) -> AskQuestionResponse:
     try:
-        answer, context = RAGService().ask_question(payload.question, top_k=payload.top_k)
+        answer, context = get_rag_service().ask_question(payload.question, top_k=payload.top_k)
         sources = [
             {
                 "document": item.get("filename") or "unknown",
