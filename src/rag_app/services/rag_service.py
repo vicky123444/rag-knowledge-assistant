@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+from functools import lru_cache
 from pathlib import Path
 
 from src.rag_app.config import settings
@@ -52,3 +53,9 @@ class RAGService:
             )
         prompt = PromptBuilder.build_prompt(question, context)
         return self.llm_service.generate(prompt), context
+
+
+@lru_cache(maxsize=1)
+def get_rag_service() -> RAGService:
+    """Reuse the vector-store client and embedding model across requests."""
+    return RAGService()
