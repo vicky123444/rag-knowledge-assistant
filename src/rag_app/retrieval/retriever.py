@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from src.rag_app.vectorstore.base import VectorStore
 
 
