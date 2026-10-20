@@ -31,7 +31,7 @@ async def ingest_document(file: UploadFile = File(...)) -> DocumentIngestRespons
     destination = temp_dir / f"{uuid4().hex}{suffix}"
     try:
         destination.write_bytes(content)
-        document_id, chunk_count = RAGService().ingest_file(destination)
+        document_id, chunk_count = RAGService().ingest_file(destination, display_filename=filename)
         return DocumentIngestResponse(
             status="success",
             message="Document ingested successfully",
