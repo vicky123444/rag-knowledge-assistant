@@ -1,0 +1,43 @@
+name: Bootstrap project source
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "bootstrap/project.zip"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  expand-project:
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.modified, 'bootstrap/project.zip') || contains(github.event.head_commit.added, 'bootstrap/project.zip') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Expand source bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f bootstrap/project.zip
+          mkdir -p /tmp/rag-source
+          unzip -q bootstrap/project.zip -d /tmp/rag-source
+          test -d /tmp/rag-source/rag-knowledge-assistant
+          cp -a /tmp/rag-source/rag-knowledge-assistant/. .
+          rm -f bootstrap/project.zip
+          rmdir bootstrap 2>/dev/null || true
+          rm -f .github/workflows/bootstrap-project.yml
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No expanded project changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Add RAG Knowledge Assistant source and documentation"
+          git push origin HEAD:main
