@@ -8,14 +8,15 @@ from fastapi import APIRouter, File, HTTPException, UploadFile
 from src.rag_app.config import settings
 from src.rag_app.ingestion.loader import SUPPORTED_SUFFIXES
 from src.rag_app.schemas.document import DocumentIngestResponse
-from src.rag_app.services.rag_service import RAGService
+from src.rag_app.services.rag_service import get_rag_service
 
 router = APIRouter()
 
 
 @router.post("/documents/ingest", response_model=DocumentIngestResponse, tags=["documents"])
 async def ingest_document(file: UploadFile = File(...)) -> DocumentIngestResponse:
-    filename = Path(file.filename or "upload").name
+    submitted_name = (file.filename or "upload").replace("\\\\", "/")
+    filename = Path(submitted_name).name
     suffix = Path(filename).suffix.lower()
     if suffix not in SUPPORTED_SUFFIXES:
         raise HTTPException(status_code=400, detail="Supported file types: PDF, TXT, MD, MARKDOWN")
@@ -31,7 +32,7 @@ async def ingest_document(file: UploadFile = File(...)) -> DocumentIngestRespons
     destination = temp_dir / f"{uuid4().hex}{suffix}"
     try:
         destination.write_bytes(content)
-        document_id, chunk_count = RAGService().ingest_file(destination, display_filename=filename)
+        document_id, chunk_count = get_rag_service().ingest_file(destination, display_filename=filename)
         return DocumentIngestResponse(
             status="success",
             message="Document ingested successfully",
