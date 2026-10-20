@@ -15,7 +15,7 @@ router = APIRouter()
 
 @router.post("/documents/ingest", response_model=DocumentIngestResponse, tags=["documents"])
 async def ingest_document(file: UploadFile = File(...)) -> DocumentIngestResponse:
-    submitted_name = (file.filename or "upload").replace("\\\\", "/")
+    submitted_name = (file.filename or "upload").replace(chr(92), "/")
     filename = Path(submitted_name).name
     suffix = Path(filename).suffix.lower()
     if suffix not in SUPPORTED_SUFFIXES:
