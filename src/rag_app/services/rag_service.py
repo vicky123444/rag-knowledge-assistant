@@ -19,16 +19,17 @@ class RAGService:
         self.chunker = Chunker(settings.chunk_size, settings.chunk_overlap)
         self.retriever = Retriever(self.vector_store)
 
-    def ingest_file(self, file_path: str | Path) -> tuple[str, int]:
+    def ingest_file(self, file_path: str | Path, display_filename: str | None = None) -> tuple[str, int]:
         path = Path(file_path)
+        source_filename = Path(display_filename).name if display_filename else path.name
         if not path.is_file():
             raise FileNotFoundError(f"Document not found: {path}")
         text, pages = DocumentLoader.extract_text(path)
         if not text.strip():
             raise ValueError("No extractable text found. Scanned PDFs may require OCR.")
         digest = hashlib.sha256(path.read_bytes()).hexdigest()[:12]
-        document_id = f"{path.stem[:60]}-{digest}"
-        chunks = self.chunker.chunk(text, document_id, path.name, pages)
+        document_id = f"{Path(source_filename).stem[:60]}-{digest}"
+        chunks = self.chunker.chunk(text, document_id, source_filename, pages)
         documents = [{
             "id": chunk.chunk_id,
             "text": chunk.text,
